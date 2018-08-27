@@ -20,64 +20,84 @@ fit_stan <- function(y, x=NA, model_name = NA, est_drift = FALSE, est_mean = FAL
   dist = c("gaussian", "binomial", "poisson", "gamma", "lognormal")
   family = which(dist==family)
 
+
   if(model_name == "regression") {
     if(class(x)!="matrix") x = matrix(x,ncol=1)
     mod = rstan::stan(paste0(stan_dir, "/exec/regression.stan"), data = list("N"=length(y),"K"=dim(x)[2],"x"=x,"y"=y,"y_int"=round(y), "family"=family),
       pars = c("beta","sigma","pred","log_lik"), chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "regression_cor") {
     if(class(x)!="matrix") x = matrix(x,ncol=1)
     mod = rstan::stan(paste0(stan_dir,"/exec/regression_cor.stan"), data = list("N"=length(y),"K"=dim(x)[2],"x"=x,"y"=y,"y_int"=round(y), "family"=family),
       pars = c("beta","sigma","pred","phi","sigma_cor","log_lik"), chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "rw" & est_drift == FALSE) {
     mod = rstan::stan(paste0(stan_dir,"/exec/rw.stan"), data = list("y"=y,"N"=length(y)), pars = c("sigma","pred"),
       chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "rw" & est_drift == TRUE) {
     mod = rstan::stan(paste0(stan_dir,"/exec/rw_drift.stan"), data = list("y"=y,"N"=length(y)), pars = c("sigma","pred","mu"),
       chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "ar" & est_drift == FALSE) {
     mod = rstan::stan(paste0(stan_dir,"/exec/ar.stan"), data = list("y"=y,"N"=length(y)), pars = c("sigma","pred","phi"),
       chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "ar" & est_drift == TRUE) {
     mod = rstan::stan(paste0(stan_dir,"/exec/ar_drift.stan"), data = list("y"=y,"N"=length(y)), pars = c("sigma","pred","mu","phi"),
       chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "ma" & Q == 1) {
     mod = rstan::stan(paste0(stan_dir,"/exec/ma1.stan"), data = list("y"=y,"N"=length(y)), pars = c("sigma","pred","mu","theta"),
       chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "ma" & Q > 1) {
     mod = rstan::stan(paste0(stan_dir,"/exec/ma.stan"), data = list("Q"=Q,"y"=y,"N"=length(y)), pars = c("sigma","pred","mu","theta"),
       chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "ss_rw" & est_drift == FALSE) {
     mod = rstan::stan(paste0(stan_dir,"/exec/ss_rw.stan"), data = list("y"=y,"N"=length(y)), pars = c("sigma_process","pred", "sigma_obs"),
       chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "ss_rw" & est_drift == TRUE) {
     mod = rstan::stan(paste0(stan_dir,"/exec/ss_rw_drift.stan"), data = list("y"=y,"N"=length(y)), pars = c("sigma_process","pred", "sigma_obs", "mu"),
       chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "ss_ar" & est_drift == FALSE) {
     mod = rstan::stan(paste0(stan_dir,"/exec/ss_ar.stan"), data = list("y"=y,"N"=length(y)), pars = c("sigma_process","pred", "sigma_obs", "phi"),
       chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "ss_ar" & est_drift == TRUE) {
     mod = rstan::stan(paste0(stan_dir,"/exec/ss_ar_drift.stan"), data = list("y"=y,"N"=length(y)), pars = c("sigma_process","pred", "sigma_obs", "mu", "phi"),
       chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "ss_ar" & est_mean == TRUE) {
     mod = rstan::stan(paste0(stan_dir,"/exec/ss_ar_mean.stan"), data = list("y"=y,"N"=length(y)), pars = c("sigma_process","pred", "sigma_obs", "mu", "phi"),
       chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "arma11") {
     mod = rstan::stan(paste0(stan_dir,"/exec/arma11.stan"), data = list("y"=y,"N"=length(y)), pars = c("sigma", "theta", "mu", "phi"),
       chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
+  if(model_name == "arma22") {
+    mod = rstan::stan(paste0(stan_dir,"/exec/arma22.stan"), data = list("y"=y,"N"=length(y)), pars = c("sigma", "mu", "theta1", "theta2", "phi1", "phi2"),
+      chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
+  }
+
   if(model_name == "dlm-intercept") {
     # constant slope, and time -varying intercept model
     if(is.na(x)) {
@@ -88,6 +108,7 @@ fit_stan <- function(y, x=NA, model_name = NA, est_drift = FALSE, est_mean = FAL
     mod = rstan::stan(paste0(stan_dir, "/exec/dlm_int.stan"), data = list("N"=length(y),"K"=dim(x)[2],"x"=x,"y"=y,"y_int"=round(y), "family"=family),
       pars = c("beta","sigma_obs","sigma_process","pred","intercept","log_lik"), chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "dlm-slope") {
     # constant estimated intercept, and time varying slopes
     if(class(x)!="matrix") x = matrix(x,ncol=1)
@@ -95,6 +116,7 @@ fit_stan <- function(y, x=NA, model_name = NA, est_drift = FALSE, est_mean = FAL
     mod = rstan::stan(paste0(stan_dir, "/exec/dlm_slope.stan"), data = list("N"=length(y),"K"=dim(x)[2],"x"=x,"y"=y,"y_int"=round(y), "family"=family),
       pars = c("beta","sigma_obs","sigma_process","pred","log_lik"), chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "dlm") {
     # this is just a time-varying model with time varying intercept and slopes
     if(class(x)!="matrix") x = matrix(x,ncol=1)
@@ -102,6 +124,7 @@ fit_stan <- function(y, x=NA, model_name = NA, est_drift = FALSE, est_mean = FAL
     mod = rstan::stan(paste0(stan_dir, "/exec/dlm.stan"), data = list("N"=length(y),"K"=dim(x)[2],"x"=x,"y"=y,"y_int"=round(y), "family"=family),
       pars = c("beta","sigma_obs","sigma_process","pred","log_lik"), chains = mcmc_list$n_chain, iter = mcmc_list$n_mcmc, thin = mcmc_list$n_thin)
   }
+
   if(model_name == "marss") {
     if(is.null(marss$states)) states = rep(1, nrow(y))
     if(is.null(marss$obsVariances)) obsVariances = rep(1, nrow(y))
